@@ -9,9 +9,11 @@ def space(obj: BinaryIO, offset: int, length: int, chunk_size: int = 1024 * 1024
     obj.truncate(end_position + length)
 
     # Shift the data
-    for pos in range(end_position - 1, offset - 1, -1):
-        obj.seek(pos, os.SEEK_SET)
-        chunk: bytes = obj.read(1)
+    for pos in range(end_position, offset, -chunk_size):
+        read_start = max(offset, pos - chunk_size)
 
-        obj.seek(pos + length, os.SEEK_SET)
+        obj.seek(read_start)
+        chunk = obj.read(min(chunk_size, end_position - read_start))
+
+        obj.seek(read_start + length)
         obj.write(chunk)
