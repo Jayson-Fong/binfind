@@ -15,7 +15,6 @@ def insert_fixed_key_entry(
         delimiter: bytes = b"\n",
         chunk_size: int = 1024 * 1024,
 ):
-    print('insert', key)
     # This method assumes that the key is of a fixed
     # length and all values already existing conform
     # to this standard.
@@ -48,14 +47,12 @@ def insert_fixed_key_entry(
 
         search_key: bytes = search_value[:len(key)]
         if search_key == key:
-            start_index: int = search_start
+            start_index: int = search_end
             break
         elif search_key > key:
             end_index = search_start
         else:
             start_index = search_end
-
-        print(key, start_index, end_index, search_start, search_end)
 
     if start_index == 0:
         binfind.util.space(obj, offset=0, length=len(key) + len(value) + len(delimiter))
