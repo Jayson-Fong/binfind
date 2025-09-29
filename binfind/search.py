@@ -151,7 +151,7 @@ def get_entry_at(
     )
 
     # Check if our initial entry is our desired entry
-    if initial_start == 0 or (initial_start <= offset <= initial_end):
+    if initial_start <= offset <= initial_end:
         return initial_content, initial_start, initial_end
 
     # We have now established a baseline! Time to "walk up"
