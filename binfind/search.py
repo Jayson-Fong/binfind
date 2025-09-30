@@ -4,7 +4,6 @@ Locate entries within a file-like object
 Utilities to identify an entry within a
 file-like object given an offset in a file.
 """
-
 from typing import BinaryIO
 
 

@@ -17,4 +17,4 @@ def space(obj: BinaryIO, offset: int, length: int, chunk_size: int = 1024 * 1024
         chunk = obj.read(min(chunk_size, end_position - read_start))
 
         obj.seek(read_start + length)
-        obj.write(chunk)
+        obj.write(memoryview(chunk))

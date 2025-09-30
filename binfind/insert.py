@@ -14,6 +14,8 @@ def insert_fixed_key_entry(
         maximum_entry_size: int = 128,
         delimiter: bytes = b"\n",
         chunk_size: int = 1024 * 1024,
+        start_index: int = 0,
+        end_index: int | None = None,
 ):
     # This method assumes that the key is of a fixed
     # length and all values already existing conform
@@ -24,18 +26,25 @@ def insert_fixed_key_entry(
     if len(key) + len(value) > maximum_entry_size:
         raise ValueError("The key length may not exceed the maximum entry size")
 
-    # To acquire the file size, seek the end
     obj.seek(0, os.SEEK_END)
-    start_index: int = 0
-    end_index: int = obj.tell()
+    obj_end_index: int = obj.tell()
+    if end_index is None:
+        end_index: int = obj_end_index
 
-    if end_index == 0:
-        # The file is empty. We can write immediately. There
-        # is no delimiter required because the start and
-        # end are interpreted as delimiters.
-        obj.seek(0, os.SEEK_SET)
-        obj.write(key + value)
-        return
+    if start_index == obj_end_index or obj_end_index == 0:
+        if start_index == 0:
+            # The file is empty. We can write immediately. There
+            # is no delimiter required because the start and
+            # end are interpreted as delimiters.
+            obj.seek(0, os.SEEK_SET)
+            obj.write(key + value)
+
+            return 0, len(key) + len(value)
+
+        obj.seek(start_index, os.SEEK_SET)
+        obj.write(delimiter + key + value)
+
+        return start_index, start_index + len(key) + len(value) + len(delimiter)
 
     while start_index < end_index - len(delimiter):
         search_value, search_start, search_end = search.get_entry_at(
@@ -55,11 +64,12 @@ def insert_fixed_key_entry(
             start_index = search_end
 
     if start_index == 0:
-        binfind.util.space(obj, offset=0, length=len(key) + len(value) + len(delimiter))
+        binfind.util.space(obj, offset=0, length=len(key) + len(value) + len(delimiter), chunk_size=chunk_size)
         obj.seek(start_index, os.SEEK_SET)
         obj.write(key + value + delimiter)
-        return
+        return start_index, len(key) + len(value)
 
-    binfind.util.space(obj, offset=start_index, length=len(key) + len(value) + len(delimiter))
+    binfind.util.space(obj, offset=start_index, length=len(key) + len(value) + len(delimiter), chunk_size=chunk_size)
     obj.seek(start_index, os.SEEK_SET)
     obj.write(delimiter + key + value)
+    return start_index, len(key) + len(value)
